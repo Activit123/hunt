@@ -22,7 +22,6 @@ public class AdminCardController {
 
     private final CardService cardService;
     private final CardRepository cardRepository;
-    // Am ELIMINAT: private final MinioService minioService;
 
     // 1. GET ALL CARDS (Rămâne neschimbat)
     @GetMapping
