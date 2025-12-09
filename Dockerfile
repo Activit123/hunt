@@ -1,15 +1,29 @@
-# 1. Folosim o imagine de Maven pentru a compila codul
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+# ---------------------------------------------------------
+# ETAPA 1: Build (Compilare)
+# Folosim o imagine de Maven care are Java 21 instalat
+# ---------------------------------------------------------
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
-# Compilăm și sărim peste teste pentru viteză
+
+# Copiem fișierele proiectului în container
+COPY . .
+
+# Compilăm proiectul și sărim peste teste (pentru viteză la deploy)
 RUN mvn clean package -DskipTests
 
-# 2. Folosim o imagine ușoară de Java pentru a rula aplicația
-FROM eclipse-temurin:17-jdk-alpine
+# ---------------------------------------------------------
+# ETAPA 2: Run (Rulare)
+# Folosim o imagine ușoară de Java 21 (Alpine Linux)
+# ---------------------------------------------------------
+FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
+
 # Copiem jar-ul generat la pasul anterior
+# Atentie: Spring Boot genereaza un singur .jar in target/
 COPY --from=build /app/target/*.jar app.jar
+
+# Expunem portul (informativ pentru Railway)
+EXPOSE 8080
+
 # Comanda de start
 ENTRYPOINT ["java", "-jar", "app.jar"]
