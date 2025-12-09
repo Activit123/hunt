@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  # 1. Baza de date PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: scavenger_db
+    environment:
+      POSTGRES_DB: scavenger_hunt
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  # 2. MinIO (Stocare Imagini)
+  minio:
+    image: minio/minio:latest
+    container_name: scavenger_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: miniopassword
+    ports:
+      - "9000:9000" # API Port (folosit de Spring Boot)
+      - "9001:9001" # Console UI (intri din browser să vezi fișierele)
+    volumes:
+      - minio_data:/data
+    restart: always
+
+volumes:
+  postgres_data:
+  minio_data:
