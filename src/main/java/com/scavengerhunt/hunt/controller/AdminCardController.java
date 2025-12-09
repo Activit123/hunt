@@ -3,7 +3,6 @@ package com.scavengerhunt.hunt.controller;
 import com.scavengerhunt.hunt.model.Card;
 import com.scavengerhunt.hunt.repository.CardRepository;
 import com.scavengerhunt.hunt.service.CardService;
-import com.scavengerhunt.hunt.service.MinioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,14 +21,16 @@ import java.io.InputStream;
 public class AdminCardController {
 
     private final CardService cardService;
-    private final MinioService minioService;
     private final CardRepository cardRepository;
+    // Am ELIMINAT: private final MinioService minioService;
 
+    // 1. GET ALL CARDS (Rămâne neschimbat)
     @GetMapping
     public Iterable<Card> getAllCards() {
         return cardRepository.findAll();
     }
 
+    // 2. ADD CARD (Rămâne neschimbat, folosește CardService care face upload-ul)
     @Operation(summary = "Adaugă un cartonaș nou", description = "Upload poză + detalii. Tipurile sunt: ADVANTAGE, DISADVANTAGE, LEGENDARY")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Card> addCard(
@@ -42,16 +43,5 @@ public class AdminCardController {
     ) {
         Card newCard = cardService.createCard(name, description, type, power, image);
         return ResponseEntity.ok(newCard);
-    }
-
-    @Operation(summary = "Descarcă/Afișează poza cartonașului")
-    @GetMapping("/image/{fileName}")
-    public ResponseEntity<InputStreamResource> getImage(@PathVariable String fileName) {
-        // Luăm stream-ul din MinIO
-        InputStream stream = minioService.getFile(fileName);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG) // Putem pune generic IMAGE_JPEG sau detecta tipul
-                .body(new InputStreamResource(stream));
     }
 }
