@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/cards")
@@ -42,5 +43,31 @@ public class AdminCardController {
     ) {
         Card newCard = cardService.createCard(name, description, type, power, image);
         return ResponseEntity.ok(newCard);
+    }
+    // NOU: 3. UPDATE CARD (Fără Poză)
+    @PutMapping("/{id}")
+    public ResponseEntity<Card> updateCard(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> cardDetails // Folosim Map ca DTO generic
+    ) {
+        // Valori presupuse din Flutter: name, description, type, power (ca int)
+        String name = (String) cardDetails.get("name");
+        String description = (String) cardDetails.get("description");
+        String type = (String) cardDetails.get("type");
+        Integer power = (Integer) cardDetails.get("power");
+
+        if (name == null || description == null || type == null || power == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Card updatedCard = cardService.updateCard(id, name, description, type, power);
+        return ResponseEntity.ok(updatedCard);
+    }
+
+    // NOU: 4. DELETE CARD
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCard(@PathVariable Long id) {
+        cardRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

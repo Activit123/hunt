@@ -23,6 +23,7 @@ public class GameMasterService {
     private final ActiveEffectRepository effectRepository;
     private final CardDropService cardDropService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final DiscoveredPoiRepository discoveredPoiRepository;
 
     // --- LOGICA DE REVENDICARE (CLAIM) ---
     @Transactional
@@ -34,21 +35,32 @@ public class GameMasterService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Echipa nu există!"));
 
+        // Verificăm dacă a fost deja completat
         if (progressRepository.existsByTeamIdAndPoiId(teamId, poi.getId())) {
             throw new RuntimeException("Ați completat deja această provocare!");
+        }
+
+        if (poi.isIntermediate) {
+            throw new RuntimeException("Provocările intermediare se completează doar cu cod!");
         }
 
         // 2. Acordare puncte
         team.setScore(team.getScore() + poi.getRewardPoints());
         teamRepository.save(team);
 
-        // 3. Salvare progres (să nu mai poată face iar)
+        // 3. Salvare progres (marchează ca revendicat/completat)
         TeamProgress progress = new TeamProgress();
         progress.setTeam(team);
         progress.setPoi(poi);
         progressRepository.save(progress);
 
-        // 4. Generare și salvare Cartonaș
+        // 4. NOU: Ștergem intrarea din DiscoveredPoi (dacă există) pentru a curăța
+        discoveredPoiRepository.findAll().stream()
+                .filter(dp -> dp.getTeam().getId().equals(teamId) && dp.getPoi().getId().equals(poi.getId()))
+                .findFirst()
+                .ifPresent(discoveredPoiRepository::delete);
+
+        // 5. Generare și salvare Cartonaș
         Card wonCard = cardDropService.drawRandomCard();
 
         TeamInventory inventory = new TeamInventory();
@@ -57,6 +69,35 @@ public class GameMasterService {
         inventoryRepository.save(inventory);
 
         return wonCard;
+    }
+
+    // NOU: LOGICA DE DESCPOERIRE POI (FĂRĂ RECOMPENSĂ)
+    @Transactional
+    public void discoverPoi(Long teamId, Long poiId) {
+        // 1. Validări
+        Poi poi = poiRepository.findById(poiId)
+                .orElseThrow(() -> new RuntimeException("POI-ul nu există!"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Echipa nu există!"));
+
+        // 2. Verificăm dacă POI-ul a fost deja completat (revendicat)
+        if (progressRepository.existsByTeamIdAndPoiId(teamId, poiId)) {
+            // Dacă a fost deja revendicat, nu facem nimic
+            return;
+        }
+
+        // 3. Verificăm dacă POI-ul a fost deja descoperit
+        if (discoveredPoiRepository.existsByTeamIdAndPoiId(teamId, poiId)) {
+            // Dacă a fost deja descoperit, nu facem nimic (este idempotent)
+            return;
+        }
+
+        // 4. Salvarea Descoperirii
+        DiscoveredPoi discoveredPoi = new DiscoveredPoi();
+        discoveredPoi.setTeam(team);
+        discoveredPoi.setPoi(poi);
+        discoveredPoiRepository.save(discoveredPoi);
     }
 
     // --- LOGICA DE JOC CARTONAȘ (PLAY CARD) ---

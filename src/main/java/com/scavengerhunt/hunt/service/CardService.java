@@ -33,4 +33,22 @@ public class CardService {
 
         return cardRepository.save(card);
     }
+
+    public Card updateCard(Long id, String name, String description, String type, int power) {
+        Card card = cardRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cardul nu a fost găsit!"));
+
+        card.setName(name);
+        card.setDescription(description);
+
+        try {
+            card.setType(CardType.valueOf(type.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Tip card invalid!");
+        }
+
+        card.setDropRateWeight(power);
+
+        return cardRepository.save(card);
+    }
 }

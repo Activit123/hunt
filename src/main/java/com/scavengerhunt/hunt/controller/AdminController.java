@@ -48,10 +48,53 @@ public class AdminController {
 
         return ResponseEntity.ok(poiRepository.save(poi));
     }
+    // NOU: 1.1. UPDATE ECHIPĂ
+    @PutMapping("/teams/{id}")
+    public ResponseEntity<Team> updateTeam(@PathVariable Long id, @RequestBody Team teamDetails) {
+        return teamRepository.findById(id).map(team -> {
+            team.setName(teamDetails.getName());
+            team.setScore(teamDetails.getScore());
+            team.setLoginCode(teamDetails.getLoginCode());
+            return ResponseEntity.ok(teamRepository.save(team));
+        }).orElse(ResponseEntity.notFound().build());
+    }
 
+    // NOU: 1.2. DELETE ECHIPĂ
+    @DeleteMapping("/teams/{id}")
+    public ResponseEntity<Void> deleteTeam(@PathVariable Long id) {
+        teamRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
     // 3. Vezi toate echipele (pentru Admin Panel Harta)
     @GetMapping("/teams")
     public Iterable<Team> getAllTeams() {
         return teamRepository.findAll();
+    }
+
+    // NOU: 2.1. UPDATE POI
+    @PutMapping("/poi/{id}")
+    public ResponseEntity<Poi> updatePoi(@PathVariable Long id, @RequestBody CreatePoiDto dto) {
+        return poiRepository.findById(id).map(poi -> {
+            poi.setLatitude(dto.getLat());
+            poi.setLongitude(dto.getLng());
+            poi.setChallengeText(dto.getChallengeText());
+            poi.setRewardPoints(dto.getRewardPoints());
+            poi.setRadius(dto.getRadius());
+            poi.setIntermediate(dto.isIntermediate());
+
+            // Permitem actualizarea codului DOAR dacă este trimis în DTO (Flutter trimite claimCode în DTO)
+            if (dto.getClaimCode() != null) {
+                poi.setClaimCode(dto.getClaimCode());
+            }
+
+            return ResponseEntity.ok(poiRepository.save(poi));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // NOU: 2.2. DELETE POI
+    @DeleteMapping("/poi/{id}")
+    public ResponseEntity<Void> deletePoi(@PathVariable Long id) {
+        poiRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

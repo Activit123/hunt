@@ -15,5 +15,5 @@ public class Poi {
     private String challengeText;
     private String claimCode; // Codul secret
     private int rewardPoints;
-    private boolean isIntermediate;
+    public boolean isIntermediate;
 }

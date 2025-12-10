@@ -5,15 +5,16 @@ import com.scavengerhunt.hunt.dto.TeamLoginDto;
 import com.scavengerhunt.hunt.model.Poi;
 import com.scavengerhunt.hunt.model.Team;
 import com.scavengerhunt.hunt.model.TeamInventory;
-import com.scavengerhunt.hunt.repository.PoiRepository;
-import com.scavengerhunt.hunt.repository.TeamInventoryRepository;
-import com.scavengerhunt.hunt.repository.TeamRepository;
+import com.scavengerhunt.hunt.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/app") // Endpoint-uri publice pentru aplicatie
@@ -23,6 +24,8 @@ public class TeamDataController {
     private final TeamRepository teamRepository;
     private final PoiRepository poiRepository;
     private final TeamInventoryRepository inventoryRepository;
+    private final TeamProgressRepository teamProgressRepository;
+    private final DiscoveredPoiRepository discoveredPoiRepository; // NOU: Injectare
 
     // 1. Login Echipă
     @PostMapping("/login")
@@ -32,7 +35,15 @@ public class TeamDataController {
                 .orElse(ResponseEntity.status(401).build());
     }
 
+    // NOU: Endpoint pentru a returna ID-urile POI-urilor descoperite SAU completate
+    @GetMapping("/discovered-poi-ids/{teamId}")
+    public Set<Long> getDiscoveredPoiIds(@PathVariable Long teamId) {
+        List<Long> completed = teamProgressRepository.findCompletedPoiIdsByTeamId(teamId);
+        List<Long> discovered = discoveredPoiRepository.findDiscoveredPoiIdsByTeamId(teamId);
 
+        // Combinăm cele două liste într-un set pentru a elimina duplicatele
+        return Stream.concat(completed.stream(), discovered.stream()).collect(Collectors.toSet());
+    }
 
     // 3. Vezi Inventarul (Cardurile mele)
     @GetMapping("/inventory/{teamId}")
