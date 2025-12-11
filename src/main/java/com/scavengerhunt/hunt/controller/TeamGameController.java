@@ -13,17 +13,17 @@ public class    TeamGameController {
 
     private final GameMasterService gameMasterService;
 
-    // Endpoint: POST /api/team/claim?teamId=1&code=COD_SECRET
-    @PostMapping("/claim")
-    public ResponseEntity<Card> claimReward(
-            @RequestParam Long teamId, 
-            @RequestParam String code
+    // MODIFICAT: Endpoint pentru a marca un POI ca descoperit (folosim /poi/discover)
+    @PostMapping("/poi/discover")
+    public ResponseEntity<String> discoverPoi(
+            @RequestParam Long teamId,
+            @RequestParam Long poiId
     ) {
         try {
-            Card card = gameMasterService.claimReward(teamId, code);
-            return ResponseEntity.ok(card);
+            gameMasterService.discoverPoi(teamId, poiId);
+            return ResponseEntity.ok("POI marcat ca descoperit!");
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build(); // Sau un mesaj de eroare custom
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
