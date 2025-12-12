@@ -13,7 +13,7 @@ public interface DiscoveredPoiRepository extends JpaRepository<DiscoveredPoi, Lo
     // Verifică dacă POI-ul a fost deja descoperit de echipă
     boolean existsByTeamIdAndPoiId(Long teamId, Long poiId);
 
-    // Returnează ID-urile POI-urilor descoperite de o echipă (pentru încărcare rapidă)
+    // MODIFICAT: Returnează ID-urile POI-urilor descoperite de o echipă
     @Query("SELECT dp.poi.id FROM DiscoveredPoi dp WHERE dp.team.id = :teamId")
     List<Long> findDiscoveredPoiIdsByTeamId(Long teamId);
 }
