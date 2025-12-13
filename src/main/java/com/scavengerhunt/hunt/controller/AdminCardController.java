@@ -70,4 +70,14 @@ public class AdminCardController {
         cardRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+    @Operation(summary = "Actualizează doar imaginea unui cartonaș existent")
+    @PutMapping(value = "/upload/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Card> updateCardImage(
+            @PathVariable Long id,
+            @Parameter(description = "Noul fișier imagine")
+            @RequestParam("image") MultipartFile image
+    ) {
+        Card updatedCard = cardService.updateCardImage(id, image);
+        return ResponseEntity.ok(updatedCard);
+    }
 }

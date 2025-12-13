@@ -51,4 +51,16 @@ public class CardService {
 
         return cardRepository.save(card);
     }
+    // NOU: Metodă pentru a actualiza doar URL-ul imaginii
+    public Card updateCardImage(Long id, MultipartFile image) {
+        Card card = cardRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cardul nu a fost găsit!"));
+
+        // 1. Upload noua imagine
+        String imageUrl = cloudinaryService.uploadImage(image);
+
+        // 2. Actualizează URL-ul și salvează
+        card.setImageUrl(imageUrl);
+        return card;
+    }
 }
