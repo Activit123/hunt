@@ -41,9 +41,6 @@ public class GameMasterService {
             throw new RuntimeException("Ați completat deja această provocare!");
         }
 
-        if (poi.isIntermediate) {
-            throw new RuntimeException("Provocările intermediare se completează doar cu cod!");
-        }
 
         // 2. Acordare puncte
         team.setScore(team.getScore() + poi.getRewardPoints());
